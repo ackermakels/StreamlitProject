@@ -3,7 +3,12 @@ Name: Kelsey Ackerman
 CS230: Section 5
 Data: skyscrapers.csv
 URL: Link to your web application online (see extra credit)
-Description: This program ... (a few sentences about your program and the queries and charts)
+Description: This program runs a streamlit application that displays skyscraper data.
+The user can view a map graph of the data showing the locations of the structures in the skyscraper file.
+THe user can view graphs based on structure type either viewing it by a bar graph or a piechart showing the percentage of
+building types each structure makes up of the tallest buildings.
+The user can view graphs based on country, showing the tallest structures in the country in a bar graph or comparing two
+countries in a scatter plot.
 '''
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -111,17 +116,6 @@ def bar_chart_building(df, num, type='Skyscraper', color='blue', ):
 
 
 def scatter(df, c1, c2):
-    '''
-    fig, ax = plt.subplots()
-    df1 = country_df(df,c1)['Feet'].max()
-    df2 = country_df(df,c2)['Feet'].max()
-    st.write(df1)
-    x = 'Tallest Structure'
-    bar_width = .3
-    ax.bar(x, df1, color='cyan', width=bar_width)
-    # plot second bar with the low data
-    ax.bar(x + bar_width, df2, color='purple', width=bar_width)
-    '''
     df1 = country_df(df, c1)
     df2 = country_df(df, c2)
     st.write(df1)
