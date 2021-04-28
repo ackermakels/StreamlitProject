@@ -28,13 +28,15 @@ DROPLIST = ['Home', 'By Structure Type', 'By Country', 'Map']
 def country_droplist():
     # create country dropdown list
     df_countries = pd.read_csv(FILENAME, usecols=['Country']).drop_duplicates(subset=['Country'])
+    # sort dataframe alphabetically
     df_sort = df_countries.sort_values(['Country'], ascending=[True])
     countries = df_sort.values.flatten().tolist()
     country_list = []
     dict_countries = {}
+    # loop trhough each country
     for c in countries:
-        # get rid of leading space
         country = c
+        # get rid of leading space
         c = c.strip()
         # if country name is two words, abbreviate with first letter of each word
         if ' ' in c:
@@ -56,21 +58,27 @@ def country_df(df, country='United States'):
     # filter df to only rows where country is equal to the country the user inputs
     df_c = df[df['Country'] == country]
     df_c = df_c[['Name', 'Feet', 'Country', 'City', 'Year']]
+    # sort dataframe
     df_c = df_c.sort_values(['Feet', 'Name'], ascending=[False, True])
     return df_c
 
 
-# list all of the data for the building type which I will get from user input.
-def buiding_type(df, type='Skyscraper'):
+# create dataframe for building type from user input
+def building_type(df, type='Skyscraper'):
     # filter df to only rows where type is equal to the type the user inputs
     df_type = df[df['Type'] == type]
+    # specify the columns wanted for the dataframe
     df_type = df_type[['Name', 'Feet', 'Country', 'City']]
+    # sort dataframe
     df_type = df_type.sort_values(['Feet', 'Name'], ascending=[False, True])
     st.subheader(f'{type}s Around the World')
     st.write(df_type)
+    # get length of dataframe
     length = len(df_type)
+    # if length is 10 or more, set the default value for the slider to 10
     if length >= 10:
         set_value = 10
+    # else, set the default value to he length of it
     else:
         set_value = length
     return df_type, length, set_value
@@ -82,13 +90,14 @@ def bar_chart_country(df, country=' United States', color='orange'):
     df_c = country_df(df, country)
     st.subheader(f'Structures in {country}')
     st.write(df_c)
+    # sort dataframe
     sorted_df = df_c.sort_values(['Feet', 'Name'], ascending=[True, True])
+    # create bar chart
     fig, ax = plt.subplots()
     x = sorted_df['Name']
     y = sorted_df['Feet']
     num = len(x)
     plt.bar(x, y, color=color)
-
     plt.title(f'Tallest Structures in the {country}')
     plt.ylabel('Height in Feet')
     plt.xlabel('Name of Structure')
@@ -98,13 +107,19 @@ def bar_chart_country(df, country=' United States', color='orange'):
     return plt
 
 
-def bar_chart_building(df, num, type='Skyscraper', color='blue', ):
+# function creates bar chart of different building types and shows their names and heights
+def bar_chart_building(df, num, type='Skyscraper', color='blue'):
+    # get head of rows with number specified from dataframe
     bar_df = df.head(num)
+    # sort dataframe
     sorted_df = bar_df.sort_values(['Feet', 'Name'], ascending=[True, True])
+    # create bar chart
     fig, ax = plt.subplots()
+    # set x and y values
     x = sorted_df['Name']
     y = sorted_df['Feet']
     num = len(x)
+    # plot bar chart
     plt.bar(x, y, color=color)
     plt.title(f'Top {num} Tallest {type}s in the World')
     plt.ylabel('Height in Feet')
@@ -114,15 +129,19 @@ def bar_chart_building(df, num, type='Skyscraper', color='blue', ):
     ax.set_xticks(x)
     return plt
 
-
+# function that creates scatterplot of the heights of the buildings built in corresponding years
 def scatter(df, c1, c2):
+    # get dataframes for each country and display them
     df1 = country_df(df, c1)
     df2 = country_df(df, c2)
+    st.subheader(f'Structures in{c1}')
     st.write(df1)
+    st.subheader(f'Structures in{c2}')
     st.write(df2)
-    df2 = country_df(df, c2)
+    # plot data
     plt.scatter(df1['Year'], df1['Feet'], color='magenta', marker='*')
     plt.scatter(df2['Year'], df2['Feet'], color='blue', marker='o')
+    # create legend
     plt.legend([c1, c2], loc=0)
     plt.title(f'Years Structures were built in{c1} and{c2}')
     plt.ylabel("Structure's Height in Feet")
@@ -131,6 +150,7 @@ def scatter(df, c1, c2):
     return plt
 
 
+# function that creates pie chart of structure types
 def pie_chart(df):
     # get counts of types and write to screen
     df_pie = df.groupby('Type')['Name'].count()
@@ -152,6 +172,7 @@ def pie_chart(df):
     return plt
 
 
+# call to create map graph
 def map_graph():
     # map graph of the tallest skyscrapers around the world using the lat and long of the buildings
     st.subheader('Map of Tallest Structures Around the World')
@@ -160,13 +181,13 @@ def map_graph():
     # rename lat and lon columns to lower case so that st.map will work
     df_map.columns = ['Name', 'lat', 'lon']
     # map df
-
+    # set view
     view_state = pdk.ViewState(
         latitude=df_map["lat"].mean(),
         longitude=df_map["lon"].mean(),
         zoom=2,
         pitch=0)
-
+    # create layer of scatterplots for each location
     layer1 = pdk.Layer('ScatterplotLayer',
                        data=df_map,
                        get_position='[lon, lat]',
@@ -174,18 +195,17 @@ def map_graph():
                        get_color=[random.randint(0, 2555), random.randint(0, 255), random.randint(0, 255)],
                        pickable=True
                        )
-
-    # stylish tool tip
+    # tool tip
     tool_tip = {"html": "{Name}</br>({lat}, {lon})",
                 "style": {"backgroundColor": "gray",
                           "color": "white"}
                 }
-
+    # create map
     map2 = pdk.Deck(map_style='mapbox://styles/mapbox/light-v9',
                     initial_view_state=view_state,
                     layers=[layer1],
                     tooltip=tool_tip)
-
+    # display map
     st.pydeck_chart(map2)
 
 
@@ -195,6 +215,7 @@ def main():
     choice = st.sidebar.selectbox('Select a category to display data:', DROPLIST)
     # read in file as a data frame
     df = pd.read_csv(FILENAME)
+    # depending on choice, display correct things on screen
     if choice == 'Home':
         img = Image.open("skyscraper.jpg")
         st.image(img)
@@ -207,7 +228,7 @@ def main():
             type_list = df['Type'].drop_duplicates().tolist()
             types = st.sidebar.selectbox('Select a structure type:', type_list)
             # get df of building type
-            result = buiding_type(df, types)
+            result = building_type(df, types)
             bar_df = result[0]
             length = result[1]
             set_value = result[2]
@@ -245,7 +266,6 @@ def main():
             countries2 = st.sidebar.selectbox('Select a Second Country:', country_list)
             country2 = country_dict[countries2]
             st.pyplot(scatter(df, country, country2))
-
 
     elif choice == 'Map':
         map_graph()
